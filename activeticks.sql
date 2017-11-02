@@ -1,28 +1,71 @@
-with a as (
-select client_id, submission_date_s3, sum(subsession_length)/3600 as thours,sum(active_ticks)*5/3600 as ahours
-from main_summary
-where app_name='Firefox'
-and normalized_channel='release'
-and substring(app_version,1,2)='56'
-and submission_date_s3 >= '20170925'
-and subsession_length<=86400 and  subsession_length>=0 and active_ticks>=0
-and sample_id='42'
-group by 1,2
+/*
+Definition: sum( active ticks in hours for the day ) / number of profiles active on day
+Owner: Saptarshi Guha (sguha@mozilla.com)
+Reviewed by: Ryan Harter (rharter@mozilla.com)
+Reviewed on: 2017-11-01
+TODO:
+ - Fix app version filter
+ - Remove sampling
+ - Fix column names (s/56/57/g)
+*/
+
+WITH a AS (
+    SELECT 
+        client_id,
+        submission_date_s3,
+        SUM(subsession_length) / 3600 AS thours,
+        SUM(active_ticks) * 5 / 3600 AS ahours
+    FROM main_summary
+    WHERE app_name = 'Firefox'
+        AND normalized_channel =' release'
+        AND SUBSTRING(app_version, 1, 2) = '56'
+        AND submission_date_s3 >= '20170925'
+        AND subsession_length <= 86400
+        AND subsession_length >= 0
+        AND active_ticks>=0
+        AND sample_id='42'
+    GROUP BY 1, 2
 ),
-b as (
-select submission_date_s3 as date, avg(thours) as thrs56,avg(ahours) as ahrs56 from a group by 1 order by  1
+b AS (
+    SELECT
+        submission_date_s3 AS date,
+        AVG(thours) AS thrs56,
+        AVG(ahours) AS ahrs56
+    FROM a
+    GROUP BY 1
+    ORDER BY 1
 ),
-c as (
-select client_id, submission_date_s3, sum(subsession_length)/3600 as thours,sum(active_ticks)*5/3600 as ahours
-from main_summary
-where app_name='Firefox'
-and submission_date_s3 >= '20170925'
-and normalized_channel='release'
-and subsession_length<=86400 and  subsession_length>=0 and active_ticks>=0
-and sample_id='42'
-group by 1,2
+c AS (
+SELECT
+    client_id,
+    submission_date_s3,
+    SUM(subsession_length) / 3600 AS thours,
+    SUM(active_ticks) * 5 / 3600 as ahours
+FROM main_summary
+WHERE app_name = 'Firefox'
+    AND submission_date_s3 >= '20170925'
+    AND normalized_channel = 'release'
+    AND subsession_length <= 86400
+    AND subsession_length >= 0
+    AND active_ticks >= 0
+    AND sample_id = '42'
+GROUP BY 1, 2
 ),
-d as (select submission_date_s3 as date, avg(thours) as thrsAll,avg(ahours) as ahrsAll from c group by 1 order by 1)
-select
-d.date, thrsAll,thrs56,ahrsAll, ahrs56 from b join d on b.date=d.date
-order by 1
+d AS (
+    SELECT
+        submission_date_s3 AS date,
+        AVG(thours) as thrsAll,
+        AVG(ahours) as ahrsAll
+    FROM c GROUP BY 1
+    ORDER BY 1
+)
+
+SELECT
+    d.date,
+    thrsAll,
+    thrs56,
+    ahrsAll,
+    ahrs56
+FROM b
+JOIN d ON b.date = d.date
+ORDER BY 1
