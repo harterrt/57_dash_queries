@@ -1,3 +1,13 @@
+/*
+Definition: sum(uri visited on a day) / sum(total hours used on day) averaged across profiles
+Owner: Saptarshi Guha (sguha@mozilla.com)
+Reviewed by: Ryan Harter (rharter@mozilla.com)
+Reviewed on: 2017-11-01
+TODO:
+ - Fix app version filter
+ - Remove sampling
+*/
+
 WITH filtered_data AS (
     SELECT 
         client_id,

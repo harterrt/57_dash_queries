@@ -1,14 +1,11 @@
 /*
-Definition: sum( active ticks in hours for the day ) / number of profiles active on day
+Definition: sum(active ticks in hours for the day) / number of profiles active on day
 Owner: Saptarshi Guha (sguha@mozilla.com)
 Reviewed by: Ryan Harter (rharter@mozilla.com)
 Reviewed on: 2017-11-01
 TODO:
  - Fix app version filter
  - Remove sampling
- - Fix column names (s/56/57/g)
-Done:
- - change column names
 */
 
 WITH filtered_data AS (
