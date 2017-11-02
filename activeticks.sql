@@ -41,10 +41,10 @@ client_data AS (
 daily_data AS (
     SELECT
         submission_date_s3 AS date,
-        AVG(subsession_hours_new) AS thours56,
-        AVG(active_hours_new) AS ahours56,
-        AVG(subsession_hours_all) AS thoursAll,
-        AVG(active_hours_all) AS ahoursAll
+        AVG(subsession_hours_new) AS avg_subsess_hours_new,
+        AVG(active_hours_new) AS avg_active_hours_new,
+        AVG(subsession_hours_all) AS avg_subsess_hours_all,
+        AVG(active_hours_all) AS avg_active_hours_all
     FROM client_data
     GROUP BY 1
     ORDER BY 1
@@ -52,10 +52,10 @@ daily_data AS (
 
 SELECT
     date,
-    thoursAll,
-    thours56,
-    ahoursAll,
-    ahours56
+    avg_subsess_hours_new,
+    avg_active_hours_new,
+    avg_subsess_hours_all,
+    avg_active_hours_all
 FROM daily_data
 ORDER BY 1
 
