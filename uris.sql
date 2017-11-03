@@ -21,7 +21,7 @@ WITH filtered_data AS (
         AND normalized_channel = 'release'
         AND submission_date_s3 >= '20170925'
         AND subsession_length <= 86400
-        AND subsession_length > 0
+        AND subsession_length >= 0
         AND sample_id='42'
 ),
 client_data AS (
@@ -39,11 +39,11 @@ daily_data AS (
     SELECT
         submission_date_s3 AS date,
         AVG(IF(
-			hours_new > 0,
-            uri_new / hours_new,
+			hours_new >= 0,
+            uri_new / (1/60.0+hours_new) ,
             NULL
         )) AS avg_uri_new,
-        AVG(uri_all / hours_all) AS avg_uri_all
+        AVG(uri_all / (1/60.0+hours_all)) AS avg_uri_all
     FROM client_data
     GROUP BY 1
     ORDER BY 1
