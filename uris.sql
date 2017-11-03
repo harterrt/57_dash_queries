@@ -1,5 +1,6 @@
 /*
-Definition: sum(uri visited on a day) / sum(total hours used on day) averaged across profiles
+Definition: sum(uri visited on a day) / sum(total hours used on day)
+            averaged across profiles
 Owner: Saptarshi Guha (sguha@mozilla.com)
 Reviewed by: Ryan Harter (rharter@mozilla.com)
 Reviewed on: 2017-11-01
@@ -13,30 +14,37 @@ WITH filtered_data AS (
         client_id,
         submission_date_s3,
         SUBSTRING(app_version, 1, 2) = '56' AS is_new_version,
-        scalar_parent_browser_engagement_total_uri_count AS uri
+        scalar_parent_browser_engagement_total_uri_count AS uri,
+        active_ticks
     FROM main_summary
     WHERE app_name = 'Firefox'
         AND normalized_channel = 'release'
         AND submission_date_s3 >= '20170925'
         AND subsession_length <= 86400
         AND subsession_length >= 0
-        AND active_ticks>=0
+        AND active_ticks > 0
         AND sample_id='42'
 ),
 client_data AS (
     SELECT
         client_id,
         submission_date_s3,
-        SUM(uri) as uri_all,
-        SUM(IF(is_new_version, uri, NULL)) as uri_new
+        SUM(uri) AS uri_all,
+        SUM(active_ticks) AS active_hours_all,
+        SUM(IF(is_new_version, uri, NULL)) AS uri_new,
+        SUM(IF(is_new_version, active_ticks, NULL)) AS active_hours_new
     FROM filtered_data
     GROUP BY 1, 2
 ),
 daily_data AS (
     SELECT
         submission_date_s3 AS date,
-        AVG(uri_new) AS avg_uri_new,
-        AVG(uri_all) AS avg_uri_all
+        AVG(IF(
+			active_hours_new > 0,
+            uri_new / active_hours_new,
+            NULL
+        )) AS avg_uri_new,
+        AVG(uri_all / active_hours_all) AS avg_uri_all
     FROM client_data
     GROUP BY 1
     ORDER BY 1
